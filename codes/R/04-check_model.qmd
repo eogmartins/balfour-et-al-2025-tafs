@@ -1,0 +1,177 @@
+---
+title: "MCMC and model checks"
+format: 
+  html
+editor: visual
+---
+
+This quarto file generates summaries and plots to assess MCMC chains and model fits.
+
+```{r}
+#| label: initial-setup
+#| echo: false
+#| message: false
+
+library(MCMCvis)
+library(tidyverse)
+library(bayesplot)
+library(here)
+
+out <- readRDS(here(paste("outputs/out_fit_dat.rds", sep = "")))
+fit <- out$fit
+jdat <- out$jdat
+mcmc <- fit$samples
+ns <- fit$mcmc.info$n.samples
+```
+
+# Freshwater residence model
+
+## Check MCMC of model parameters
+
+```{r}
+#| label: residence-check-MCMC
+#| echo: false
+#| message: false
+#| warning: false
+
+# Summary table ----
+MCMCsummary(fit, round = 2, params = c("alpha.r", "beta.r", "shape.nu.r", 
+                                       "rate.nu.r", "nu.r"), HPD = TRUE)
+
+# Trace, density, and ACF plots for shape parameters, intercept and slopes ----
+pr <- cbind(rgamma(ns, 2, 1),
+            matrix(rnorm(9 * ns, 0, sqrt(1/0.1)), nrow = ns, ncol = 9),
+            matrix(rgamma(2 * ns, 0.1, 0.1), nrow = ns, ncol = 2))
+
+MCMCtrace(fit, params = c("alpha.r", "beta.r", "shape.nu.r", "rate.nu.r"), 
+          pdf = FALSE, priors = pr, Rhat = TRUE, post_zm = FALSE)
+
+MCMCtrace(fit, params = "nu.r", 
+          pdf = FALSE, priors = NULL, Rhat = TRUE, post_zm = FALSE)
+
+mcmc_acf(mcmc, pars = c("alpha.r", paste("beta.r[", 1:4, "]", sep = "")))
+
+mcmc_acf(mcmc, pars = paste("beta.r[", 5:9, "]", sep = ""))
+
+mcmc_acf(mcmc, pars = c("shape.nu.r", "rate.nu.r"))
+
+mcmc_acf(mcmc, pars = c(paste("nu.r[", 1:4, "]", sep = "")))
+
+mcmc_acf(mcmc, pars = c(paste("nu.r[", 5:9, "]", sep = "")))
+```
+
+## Posterior predictive checks
+
+```{r}
+#| residence-ppc
+#| echo: false
+#| message: false
+#| warning: false
+
+r_obs <- as.vector(na.exclude(jdat$r))
+
+not_na <- which(!is.na(jdat$r))
+
+r_rep <- matrix(NA, nrow = ns, ncol = length(not_na))
+
+for (j in 1:ns) {
+  r_rep[j, ] <- as.vector(fit$sims.list$r.rep[j, ])[not_na]
+}
+
+ppc_dens_overlay(r_obs, r_rep) + theme_bw()
+
+ppc_stat(r_obs, r_rep, stat = "mean", binwidth = 0.1) + theme_bw()
+ppc_stat(r_obs, r_rep, stat = "max", binwidth = 1) + theme_bw()
+ppc_stat(r_obs, r_rep, stat = "min", binwidth = 0.05) + theme_bw()
+```
+
+# State-space CJS model
+
+## Check MCMC of model parameters
+
+```{r}
+#| label: cjs-check-MCMC
+#| echo: false
+#| message: false
+#| warning: false
+
+# Summary table ----
+MCMCsummary(fit, round = 2, params = c("alpha.phi", "beta.phi",
+                                       "alpha.p", "beta.p", "mu_phi2"), HPD = TRUE)
+
+# Trace, density, and ACF plots for intercept and slopes ----
+pr <- cbind(rnorm(ns, 0, 1),
+            matrix(rnorm(9 * ns, 0, sqrt(1/0.1)), nrow = ns, ncol = 9),
+            rnorm(ns, 0, 1), rnorm(ns, 0, sqrt(1/0.1)))
+
+MCMCtrace(fit, params = c("alpha.phi", "beta.phi", "alpha.p", "beta.p"), 
+          pdf = FALSE, priors = pr, Rhat = TRUE, post_zm = FALSE)
+
+mcmc_acf(mcmc, pars = c("alpha.phi", paste("beta.phi[", 1:4, "]", sep = "")))
+
+mcmc_acf(mcmc, pars = paste("beta.phi[", 5:9, "]", sep = ""))
+
+mcmc_acf(mcmc, pars = c("alpha.p", "beta.p"))
+```
+
+## Posterior predictive checks
+
+```{r}
+#| label: cjs-ppc
+#| echo: false
+#| message: false
+#| warning: false
+
+# Individual detections
+y_obs <- as.vector(jdat$y[, 2:3])
+
+y_rep <- matrix(NA, nrow = ns, ncol = length(y_obs))
+
+for (j in 1:ns) {
+  y_rep[j, ] <- as.vector(fit$sims.list$y.rep[j, , 2:3])
+}
+
+ppc_dens_overlay(y_obs, y_rep) + theme_bw()
+ppc_stat(y_obs, y_rep, stat = "mean") + theme_bw()
+```
+
+## Chi2 test: observed vs expected frequencies of detection histories
+
+```{r}
+#| label: cjs-chi2
+#| echo: false
+#| message: false
+#| warning: false
+
+# Observed frequencies of detection histories
+y_obs <- as.data.frame(jdat$y[, 2:3]) %>%
+  mutate(dh = paste(a2, a1, sep = "")) %>%
+  count(dh)
+
+# Observed frequencies of detection histories
+
+y_rep <- data.frame()
+
+for (j in 1:ns) {
+  df_tmp <- as.data.frame(fit$sims.list$y.rep[j, , 2:3]) %>%
+    mutate(dh = paste(V1, V2, sep = "")) %>%
+    count(dh) %>%
+    mutate(iter = j)
+  
+  y_rep <- rbind(y_rep, df_tmp)
+}
+
+y_rep_mdn <- group_by(y_rep, dh) %>% 
+  summarize(mdn = median(n)) %>%
+  pull(mdn)
+
+# Test observed vs expected
+chisq.test(y_obs$n, y_rep_mdn)
+
+# Plot observed vs expected frequencies
+ggplot(y_rep, aes(x = n)) +
+  geom_histogram(fill = "gray", colour = "black") +
+  geom_vline(data = y_obs, aes(xintercept = n), colour = "blue") +
+  facet_wrap(~ dh, scales = "free") +
+  theme_bw()
+```
