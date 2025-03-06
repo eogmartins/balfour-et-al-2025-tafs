@@ -4,6 +4,8 @@ This repository contains data and codes associated with the article **Release st
 
 **IMPORTANT:** You will need to set up Git LFS when cloning this repository. This is required so you can download the model output file (`out_fit_dat.rds`), which is about 2GB in size. Once you have setup Git LFS (see instructions [here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage)), issue the command `git lfs pull` in an RStudio terminal, so the output file is downloaded, rather than just the pointer file.
 
+[![DOI](https://zenodo.org/badge/944068586.svg)](https://doi.org/10.5281/zenodo.14984681)
+
 ## Data and file structure
 
 The following raw data files were used in the analyses. Missing data are identified as NA.
