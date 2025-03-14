@@ -113,6 +113,7 @@ project
 │       └── 08-plot_supplement_s2.R
 ├── data
 │   ├── kennedy_camp_dailyrainfall_2021.csv
+|   ├── processed_wl_rf_data.rds
 │   ├── reader01_detections.csv
 │   ├── reader02_detections.csv
 │   ├── tagging_data.csv
