@@ -54,7 +54,11 @@ The following raw data files were used in the analyses. Missing data are identif
 - *antenna\_id*: Integer identifying the antenna (single antenna and ignored in the paper).
 - *dec_id*: Unique PIT tag code identifying the detected fish.
 
-**out_fit_dat.rds** - R Data Serialization file containing the data and outputs of the model presented in the manuscript. They are organanized in a R list containing two elements.
+**processed_wl_rf_data.rds** - R Data Serialization file containing processed water level and preciptation data. This file is created with function **01-process\_water\_rainfall\_data.R**. The file is structured as a R list containing two elements. 
+- *wl_data**: A data frame containing the variables associated with the water level data.
+- *rf_data**: A data frame containing the variables associated with the precipitation data.
+
+**out_fit_dat.rds** - R Data Serialization file containing the data and outputs of the model presented in the manuscript. They are organized in a R list containing two elements.
 
 - *fit*: A jagsUI oobject containing the posterior samples of model parameters obtained by JAGS.
 - *jfit*: A R list containing the list of data sent to JAGS via jagsUI.
