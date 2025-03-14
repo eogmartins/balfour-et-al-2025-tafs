@@ -54,7 +54,7 @@ The following raw data files were used in the analyses. Missing data are identif
 - *antenna\_id*: Integer identifying the antenna (single antenna and ignored in the paper).
 - *dec_id*: Unique PIT tag code identifying the detected fish.
 
-**processed_wl_rf_data.rds** - R Data Serialization file containing processed water level and preciptation data. This file is created with function **01-process\_water\_rainfall\_data.R**. The file is structured as a R list containing two elements. 
+**processed\_wl\_rf\_data.rds** - R Data Serialization file containing processed water level and preciptation data. This file is created with function **01-process\_water\_rainfall\_data.R**. The file is structured as a R list containing two elements. 
 - *wl_data**: A data frame containing the variables associated with the water level data.
 - *rf_data**: A data frame containing the variables associated with the precipitation data.
 
