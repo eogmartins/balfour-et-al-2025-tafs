@@ -1,6 +1,6 @@
 # Description
 
-This repository contains data and codes associated with the article **Release strategies affect the freshwater residence and survival of hatchery-reared juvenile Chinook salmon (Oncorhynchus tshawytcha)**.
+This repository contains data and codes associated with the article [**Release strategies affect the freshwater residence and survival of hatchery-reared juvenile Chinook salmon (Oncorhynchus tshawytcha)**](https://doi.org/10.1093/tafafs/vnaf009)
 
 **IMPORTANT:** You will need to set up Git LFS when cloning this repository. This is required so you can download the model output file (`out_fit_dat.rds`), which is about 2GB in size. Once you have setup Git LFS (see instructions [here](https://docs.github.com/en/repositories/working-with-files/managing-large-files/installing-git-large-file-storage)), issue the command `git lfs pull` in an RStudio terminal, so the output file is downloaded, rather than just the pointer file.
 
